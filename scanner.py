@@ -12,6 +12,10 @@ colorama.init()
 
 class WebsitePathScanner:
     def __init__(self, base_url, delay=0.1, max_workers=5):
+        # Ensure URL has proper scheme
+        if not base_url.startswith(('http://', 'https://')):
+            base_url = 'https://' + base_url
+        
         self.base_url = base_url.rstrip('/')
         self.delay = delay
         self.max_workers = max_workers
@@ -20,6 +24,8 @@ class WebsitePathScanner:
         self.extensions = ['', '.php', '.html', '.json', '.aspx', '.jsp', '.txt', '.bak', '.old']
         self.methods = ['GET', 'HEAD', 'POST', 'OPTIONS']
         self.callback = None
+        self.wordlists = {}
+        self.is_scanning = False
 
     def set_callback(self, callback):
         self.callback = callback
@@ -65,15 +71,40 @@ class WebsitePathScanner:
         except Exception as e:
             print(f"{Fore.RED}[ERROR] Failed to parse HTML: {str(e)}{Style.RESET_ALL}")
 
+    def stop_scan(self):
+        self.is_scanning = False
+        self.notify('stopped', 'Scan stopped by user')
+
     def scan_website(self):
-        print(f"{Fore.CYAN}Starting scan of {self.base_url}...{Style.RESET_ALL}")
+        self.is_scanning = True
+        self.notify('status', f'Starting scan of {self.base_url}...')
         
-        # Load wordlists
-        common_paths = self.load_wordlist('wordlists/common_paths.txt')
-        admin_paths = self.load_wordlist('wordlists/admin_paths.txt')
-        api_paths = self.load_wordlist('wordlists/api_paths.txt')
+        # Load wordlists based on configuration
+        all_paths = set()
         
-        all_paths = set(common_paths + admin_paths + api_paths)
+        # Default to enabled if no configuration is provided
+        if not self.wordlists:
+            self.wordlists = {
+                'common': {'enabled': True, 'limit': 0},
+                'admin': {'enabled': True, 'limit': 0},
+                'api': {'enabled': True, 'limit': 0}
+            }
+        
+        if self.wordlists.get('common', {}).get('enabled', True):
+            limit = self.wordlists.get('common', {}).get('limit', 0)
+            paths = self.load_wordlist('wordlists/common_paths.txt')
+            all_paths.update(paths[:limit] if limit else paths)
+        
+        if self.wordlists.get('admin', {}).get('enabled', True):
+            limit = self.wordlists.get('admin', {}).get('limit', 0)
+            paths = self.load_wordlist('wordlists/admin_paths.txt')
+            all_paths.update(paths[:limit] if limit else paths)
+        
+        if self.wordlists.get('api', {}).get('enabled', True):
+            limit = self.wordlists.get('api', {}).get('limit', 0)
+            paths = self.load_wordlist('wordlists/api_paths.txt')
+            all_paths.update(paths[:limit] if limit else paths)
+        
         total_paths = len(all_paths) * len(self.extensions) * len(self.methods)
         
         print(f"{Fore.CYAN}Loaded {len(all_paths)} unique paths to test{Style.RESET_ALL}")
@@ -83,20 +114,36 @@ class WebsitePathScanner:
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = []
             for path in all_paths:
+                if not self.is_scanning:  # Check if scanning should stop
+                    break
+                    
                 for ext in self.extensions:
+                    if not self.is_scanning:  # Check if scanning should stop
+                        break
+                        
                     full_path = f"{path}{ext}"
                     for method in self.methods:
+                        if not self.is_scanning:  # Check if scanning should stop
+                            break
+                            
                         futures.append(
                             executor.submit(self.scan_path, full_path, method)
                         )
             
             completed = 0
             for future in concurrent.futures.as_completed(futures):
+                if not self.is_scanning:  # Check if scanning should stop
+                    executor.shutdown(wait=False)
+                    break
+                    
                 completed += 1
                 if completed % 10 == 0:
-                    print(f"{Fore.CYAN}Progress: {completed}/{total_paths} paths tested{Style.RESET_ALL}")
+                    self.notify('progress', f'Progress: {completed}/{total_paths} paths tested')
         
-        print(f"\n{Fore.GREEN}Scan Complete!{Style.RESET_ALL}")
+        if self.is_scanning:
+            self.notify('complete', 'Scan Complete!')
+        self.is_scanning = False
+        
         print(f"Found {len(self.found_paths)} accessible paths")
         
         # Save results to file
