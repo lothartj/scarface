@@ -1,0 +1,114 @@
+:root {
+    --primary-color: #1e1e1e;
+    --secondary-color: #252526;
+    --accent-color: #007acc;
+    --text-color: #d4d4d4;
+    --border-color: #404040;
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+}
+
+.scanner-container {
+    position: absolute;
+    width: 600px;
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.scanner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: var(--primary-color);
+    cursor: move;
+}
+
+.scanner-header h2 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.drag-handle {
+    color: var(--border-color);
+    cursor: move;
+}
+
+.scanner-content {
+    padding: 15px;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+input[type="text"] {
+    flex: 1;
+    padding: 8px 12px;
+    background-color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 4px;
+}
+
+button {
+    padding: 8px 16px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #005999;
+}
+
+.results-container {
+    background-color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    height: 400px;
+    overflow-y: auto;
+}
+
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: var(--secondary-color);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 14px;
+}
+
+#resultsArea {
+    padding: 10px;
+    font-family: 'Consolas', monospace;
+    font-size: 14px;
+}
+
+.result-item {
+    padding: 4px 8px;
+    margin: 2px 0;
+    border-radius: 3px;
+}
+
+.result-found {
+    color: #3c9;
+}
+
+.result-error {
+    color: #f44;
+}

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scarface Path Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <div class="scanner-container" id="scannerContainer">
+        <div class="scanner-header">
+            <h2>🔍 Scarface Path Scanner</h2>
+            <div class="drag-handle">⋮⋮</div>
+        </div>
+        
+        <div class="scanner-content">
+            <div class="input-group">
+                <input type="text" id="urlInput" placeholder="Enter URL (e.g., http://example.com)">
+                <button id="startScan">Start Scan</button>
+            </div>
+            
+            <div class="results-container">
+                <div class="status-bar">
+                    <span id="scanStatus">Ready</span>
+                    <span id="pathCount">Paths: 0</span>
+                </div>
+                <div id="resultsArea"></div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

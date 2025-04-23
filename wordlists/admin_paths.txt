@@ -1,0 +1,6 @@
+/wp-admin
+/wp-login.php
+/administrator
+/manager
+/cpanel
+/webadmin
