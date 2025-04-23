@@ -199,3 +199,14 @@ button:hover {
     background-color: #666;
     cursor: not-allowed;
 }
+
+.path-count {
+    margin-left: 10px;
+    color: var(--accent-color);
+    font-size: 0.9em;
+}
+
+.result-stopped {
+    color: #ff6b6b;
+    font-style: italic;
+}

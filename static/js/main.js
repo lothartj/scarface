@@ -137,8 +137,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
             resultsArea.appendChild(resultDiv);
             resultsArea.scrollTop = resultsArea.scrollHeight;
-        } else if (data.status === 'complete' || data.status === 'stopped') {
-            scanStatus.textContent = data.status === 'complete' ? 'Complete' : 'Stopped';
+        } 
+        else if (data.status === 'counts' && data.counts) {
+            // Update the counts for each wordlist
+            document.getElementById('commonCount').textContent = `Scanned: ${data.counts.common}`;
+            document.getElementById('adminCount').textContent = `Scanned: ${data.counts.admin}`;
+            document.getElementById('apiCount').textContent = `Scanned: ${data.counts.api}`;
+        }
+        else if (data.status === 'stopped') {
+            scanStatus.textContent = 'Stopped';
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            // Clear any remaining tasks
+            resultsArea.innerHTML += '<div class="result-item result-stopped">Scan stopped by user</div>';
+        }
+        else if (data.status === 'complete') {
+            scanStatus.textContent = 'Complete';
             startButton.disabled = false;
             stopButton.disabled = true;
         }

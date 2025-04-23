@@ -30,9 +30,12 @@ class WebsitePathScanner:
     def set_callback(self, callback):
         self.callback = callback
 
-    def notify(self, status, message, path=None, code=None):
+    def notify(self, status, message, path=None, code=None, counts=None):
+        """
+        Updated notify method to handle count updates
+        """
         if self.callback:
-            self.callback(status, message, path, code)
+            self.callback(status, message, path, code, counts)
 
     def load_wordlist(self, file_path):
         try:
@@ -77,68 +80,62 @@ class WebsitePathScanner:
 
     def scan_website(self):
         self.is_scanning = True
-        self.notify('status', f'Starting scan of {self.base_url}...')
+        self.notify('status', f'Starting scan of {self.base_url}')
         
-        # Load wordlists based on configuration
         all_paths = set()
+        scanned_counts = {'common': 0, 'admin': 0, 'api': 0}
         
-        # Default to enabled if no configuration is provided
-        if not self.wordlists:
-            self.wordlists = {
-                'common': {'enabled': True, 'limit': 0},
-                'admin': {'enabled': True, 'limit': 0},
-                'api': {'enabled': True, 'limit': 0}
-            }
-        
+        # Load and limit paths based on user selection
         if self.wordlists.get('common', {}).get('enabled', True):
             limit = self.wordlists.get('common', {}).get('limit', 0)
             paths = self.load_wordlist('wordlists/common_paths.txt')
-            all_paths.update(paths[:limit] if limit else paths)
+            if limit > 0:
+                paths = paths[:limit]
+            all_paths.update(paths)
         
         if self.wordlists.get('admin', {}).get('enabled', True):
             limit = self.wordlists.get('admin', {}).get('limit', 0)
             paths = self.load_wordlist('wordlists/admin_paths.txt')
-            all_paths.update(paths[:limit] if limit else paths)
+            if limit > 0:
+                paths = paths[:limit]
+            all_paths.update(paths)
         
         if self.wordlists.get('api', {}).get('enabled', True):
             limit = self.wordlists.get('api', {}).get('limit', 0)
             paths = self.load_wordlist('wordlists/api_paths.txt')
-            all_paths.update(paths[:limit] if limit else paths)
+            if limit > 0:
+                paths = paths[:limit]
+            all_paths.update(paths)
+
+        total_paths = len(all_paths)
         
-        total_paths = len(all_paths) * len(self.extensions) * len(self.methods)
-        
-        print(f"{Fore.CYAN}Loaded {len(all_paths)} unique paths to test{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}Testing with extensions: {', '.join(self.extensions)}{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}Using HTTP methods: {', '.join(self.methods)}{Style.RESET_ALL}")
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            futures = []
-            for path in all_paths:
-                if not self.is_scanning:  # Check if scanning should stop
-                    break
-                    
-                for ext in self.extensions:
-                    if not self.is_scanning:  # Check if scanning should stop
-                        break
-                        
-                    full_path = f"{path}{ext}"
-                    for method in self.methods:
-                        if not self.is_scanning:  # Check if scanning should stop
-                            break
-                            
-                        futures.append(
-                            executor.submit(self.scan_path, full_path, method)
-                        )
+        for path in all_paths:
+            if not self.is_scanning:
+                self.notify('stopped', 'Scan stopped by user')
+                return
             
-            completed = 0
-            for future in concurrent.futures.as_completed(futures):
-                if not self.is_scanning:  # Check if scanning should stop
-                    executor.shutdown(wait=False)
-                    break
+            # Update counts based on which wordlist the path is from
+            if path in self.load_wordlist('wordlists/common_paths.txt'):
+                scanned_counts['common'] += 1
+            elif path in self.load_wordlist('wordlists/admin_paths.txt'):
+                scanned_counts['admin'] += 1
+            elif path in self.load_wordlist('wordlists/api_paths.txt'):
+                scanned_counts['api'] += 1
+            
+            # Send count updates
+            self.notify('counts', 'Path counts updated', counts=scanned_counts)
+            
+            for ext in self.extensions:
+                if not self.is_scanning:
+                    return
                     
-                completed += 1
-                if completed % 10 == 0:
-                    self.notify('progress', f'Progress: {completed}/{total_paths} paths tested')
+                full_path = f"{path}{ext}"
+                
+                for method in self.methods:
+                    if not self.is_scanning:
+                        return
+                        
+                    self.scan_path(full_path, method)
         
         if self.is_scanning:
             self.notify('complete', 'Scan Complete!')

@@ -19,10 +19,9 @@ def scan_website_background(url, delay=0.1, workers=5, wordlists=None):
     scanner = WebsitePathScanner(url, delay, workers)
     active_scanner = scanner
     
-    # Set the wordlists configuration
     scanner.wordlists = wordlists or {}
     
-    def progress_callback(status, message, path=None, code=None):
+    def progress_callback(status, message, path=None, code=None, counts=None):
         data = {
             'status': status,
             'message': message,
@@ -30,6 +29,8 @@ def scan_website_background(url, delay=0.1, workers=5, wordlists=None):
             'code': code,
             'baseUrl': url
         }
+        if counts:
+            data['counts'] = counts
         socketio.emit('scan_update', data)
     
     scanner.set_callback(progress_callback)
