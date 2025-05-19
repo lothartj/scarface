@@ -1,5 +1,7 @@
 # Scarface Website Path Scanner
 
+![Scarface poster](https://image.tmdb.org/t/p/original/iQ5ztdjvteGeboxtmRdXEChJOHh.jpg)
+
 An advanced Python-based website path scanner with a modern web interface that discovers accessible paths, endpoints, and potential security issues.
 
 ## Features
