@@ -1,4 +1,4 @@
-# Scarface Website Path Scanner
+# Scarface Website Path Scanner.
 
 ![Scarface poster](https://image.tmdb.org/t/p/original/iQ5ztdjvteGeboxtmRdXEChJOHh.jpg)
 
